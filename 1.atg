@@ -1,0 +1,49 @@
+COMPILER ArchivoPrueba1
+
+CHARACTERS
+
+letra = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz".
+
+digito = "0123456789".
+
+KEYWORDS
+
+TOKENS
+
+numero = digito{digito}.
+IGNORE = CHR(9) + CHR(10) + CHR(13) + CHR(20).
+
+PRODUCTIONS
+
+EstadoInicial = {Instruccion ";"}.
+
+Instruccion =									(. resultado = 0 .)
+	Expresion <resultado>					    (. print('Resultado: ', resultado) .)
+	.
+
+Expresion <resultado> =		        			(. resultado1 = 0; resultado2 = 0 .)
+	Termino <resultado1>
+	{		"+" Termino <resultado2>		    (. resultado1 += resultado2 .)
+		  | "-" Termino <resultado2>		    (. resultado1 -= resultado2 .)
+	}											(. resultado = resultado1 .)
+	.
+
+Termino <resultado> =					        (. resultado1 = 0; resultado2 = 0 .)
+	Factor <resultado1>
+	{		"*" Factor <resultado2>			    (. resultado1 *= resultado2 .)
+		  | "/" Factor <resultado2>			    (. resultado1 /= resultado2 .)
+	}											(. resultado = resultado1 .)
+	.
+
+Factor <resultado> =				        	(.signo = 1.)
+	[		"-"									(.signo = -1.)
+	]
+	( 		Number <resultado>
+		  | "(" Expresion <resultado> ")"
+	)											(. resultado *= signo .)
+	.
+
+Number <resultado> = numero				        (. resultado = float(self.lastTokenValue) .)
+.
+
+END ArchivoPrueba1
