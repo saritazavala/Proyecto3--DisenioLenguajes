@@ -22,7 +22,7 @@ Instruccion =									(. resultado = 0 .)
 
 Expresion <resultado> =					        (. resultado1 = 0; resultado2 = 0 .)
 	Termino <resultado1>
-	{		"+" Termino <resultado2>		    (. resultado1 += resultado2;
+	{		"/" Termino <resultado2>		    (. resultado1 /= resultado2;
 												   print("Término: ", resultado1) .)
 	}											(. resultado = resultado1;
 												   print("Término: ", resultado) .)
@@ -30,7 +30,7 @@ Expresion <resultado> =					        (. resultado1 = 0; resultado2 = 0 .)
 
 Termino <resultado> =					        (. resultado1 = 0; resultado2 = 0 .)
 	Factor <resultado1>
-	{		"*" Factor <resultado2>			    (. resultado1 *= resultado2;
+	{		"-" Factor <resultado2>			    (. resultado1 -= resultado2;
 												   print("Factor: ", resultado1) .)
 	}											(. resultado = resultado1;
 												   print("Factor: ", resultado) .)
@@ -41,7 +41,7 @@ Factor <resultado> =				        	(. resultado1 = 0 .)
 												   print("Número: ", resultado) .)
 	.
 
-Numero <resultado> = numeroToken	        	(. resultado = float(self.lastTokenValue);
+Numero <resultado> = numeroToken	        	(. resultado = float(self.valor_tokenF);
 												   print("Token: ", resultado) .)
 .
 

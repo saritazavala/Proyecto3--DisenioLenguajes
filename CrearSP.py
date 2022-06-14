@@ -42,10 +42,14 @@ class Producir_utils:
             self.generateAFN(list(i), currentAlphabet, full_util, self.tokens[index].id)
             index += 1
 
-        afd = self.generateAFD(full_util, alphaaa)
-        self.generateFile(afd)  # Se genera el Scanner
+        afd = self.crear_automata(full_util, alphaaa)
+        # ------------------------------------------------------
+        # ------------------------------------------------------
+        self.generar_scanner(afd)  # Se genera el Scanner
+        # ------------------------------------------------------
+        # ------------------------------------------------------
         PSintaxis(self.tokens, self.keywords, self.producciones, self.token2)  # Se Genera el parser
-    def generateAFD(self, full_util, alphabet):
+    def crear_automata(self, full_util, alphabet):
         # Crear y graficar AFD
         print("Scanner y Parser creados")
         afd_sub = Subconjuntos(full_util['states'], full_util['transitions'], alphabet, full_util['accepting_states'],
@@ -116,22 +120,10 @@ class Producir_utils:
             finalExpression.append(validacion_presente)
         self.expressions = finalExpression
 
-    def generateFile(self, full):
+    def generar_scanner(self, full):
         f = open("Scanner.py", "w")
         f.write("import pickle \n")
-        f.write("full = " + str(full))
-        keys = []
-        for i in self.keywords:
-            keys.append([i.id, i.value])
-        f.write("\nkeywords = " + str(keys))
-        token2_list = []
-        for i in self.token2:
-            token2_list.append([i.id, i.value])
-        f.write("\ntoken2 = " + str(token2_list))
-        f.write("\nestados = " + str(self.estados))
-        f.write("\nenter = chr(92) + chr(110)")
-        f.write('''
-
+        f.write(f''' 
 def procesar_txt(full, keywords, token2, estados):
 # -----------------------------------------------------------
     bandera = False
@@ -252,10 +244,33 @@ def encontrar_valores(full, opc, keywords, token2, estados):
                 return ["Error", s]
 # -----------------------------------------------------------
 # -----------------------------------------------------------
+''')
+        f.write("full = " + str(full))
+        keys = []
+        for i in self.keywords:
+            keys.append([i.id, i.value])
+        f.write("\nkeywords = " + str(keys))
+        token2_list = []
+        for i in self.token2:
+            token2_list.append([i.id, i.value])
+        f.write("\ntoken2 = " + str(token2_list))
+        f.write("\nestados = " + str(self.estados))
+        f.write("\nenter = chr(92) + chr(110)")
+        f.write(''' 
+# -----------------------------------------------------------
+# -----------------------------------------------------------        
 result, values = procesar_txt(full, keywords, token2, estados)
-with open('scannedTokens.bin', 'wb') as f:
+with open('archivoConTokens.bin', 'wb') as f:
     pickle.dump(result, f, pickle.HIGHEST_PROTOCOL)
 
-with open('scannedValues.bin', 'wb') as f:
+with open('archivoConValores.bin', 'wb') as f:
     pickle.dump(values, f, pickle.HIGHEST_PROTOCOL)
-            ''')
+# -----------------------------------------------------------
+# -----------------------------------------------------------    
+    
+    ''')
+
+
+
+
+

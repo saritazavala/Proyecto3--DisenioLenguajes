@@ -1,4 +1,4 @@
-from AFN import AFN
+
 from Caracteres import *
 
 class Subconjuntos(object):

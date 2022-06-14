@@ -64,7 +64,7 @@ class PSintaxis(object):
                         continue
                 else:
                     orOps = 0
-                    exp = self.getSubs(expression[position:], '(', ')')
+                    exp = self.jalar_subgrupo(expression[position:], '(', ')')
                     self.analizeExpression(file, exp, orOps, firstIf, True)
                     position += len(exp)
                     subs = exp.split('|')
@@ -72,7 +72,7 @@ class PSintaxis(object):
             elif expression[position] == '{':
                 orOps = 0
                 primeros = ''
-                exp = self.getSubs(expression[position:], '{', '}')
+                exp = self.jalar_subgrupo(expression[position:], '{', '}')
                 subs = exp.split('|')
                 hasProd = False
                 for i in subs:
@@ -88,13 +88,13 @@ class PSintaxis(object):
                     if hasProd:primeros += prim
                     else:primeros += "'" + prim + "',"
                 if hasProd == False:primeros = primeros[:-1]
-                file.write('\n' + '\t' * self.tabs + 'while self.currentToken in [' + primeros + ']:')
+                file.write('\n' + '\t' * self.tabs + 'while self.token_presente in [' + primeros + ']:')
                 self.tabs += 1
                 position += 1
                 continue
             elif expression[position] == '[':
                 orOps = 0
-                exp = self.getSubs(expression[position:], '[', ']')
+                exp = self.jalar_subgrupo(expression[position:], '[', ']')
                 self.analizeExpression(file, exp, orOps, firstIf, True)
                 position += len(exp)
                 subs = exp.split('|')
@@ -120,7 +120,7 @@ class PSintaxis(object):
                         for j in i.primeros:
                             primeros += "'" + j + "',"
                         primeros = primeros[:-1]
-                        file.write('\n' + '\t' * self.tabs + 'if self.currentToken in [' + primeros + ']:')
+                        file.write('\n' + '\t' * self.tabs + 'if self.token_presente in [' + primeros + ']:')
                         if self.tabs == 2:
                             firstIf = True
                             if inLoop:self.continuarL = True
@@ -129,7 +129,7 @@ class PSintaxis(object):
                         params = ''
                         code = '\n' + '\t' * self.tabs
                         if expression[position + len(i.id)] == '<':
-                            params = self.getSubs(expression[position + len(i.id):], '<', '>')
+                            params = self.jalar_subgrupo(expression[position + len(i.id):], '<', '>')
                             code += params + ' = '
                             positioned = True
                             position += expression[position:].find('<') + len(params) + 1
@@ -144,19 +144,19 @@ class PSintaxis(object):
                         anonym = expression[position + 1:position + 1 + anonCLose]
                         for i in self.token2:
                             if i.id == anonym:
-                                code = '\n' + '\t' * self.tabs + inOr + "if self.currentToken == '" + anonym + "':"
+                                code = '\n' + '\t' * self.tabs + inOr + "if self.token_presente == '" + anonym + "':"
                                 file.write(code)
                                 if self.tabs == 2:
                                     firstIf = True
                                     if inLoop:self.continuarL = True
                                 self.tabs += 1
                                 orOps += 1
-                                file.write('\n' + '\t' * self.tabs + 'self.getNext()')
+                                file.write('\n' + '\t' * self.tabs + 'self.mover()')
                                 position += len(anonym) + 1
                     else:
                         for i in self.tokens:
                             if expression[position:].find(i.id) == 0:
-                                file.write('\n' + '\t' * self.tabs + 'self.getNext()')
+                                file.write('\n' + '\t' * self.tabs + 'self.mover()')
             if inOr != '':
                 inOr = ''
             position += 1
@@ -172,27 +172,27 @@ class Parser(object):
 		self.valores = valores
 # -----------------------------------------------------------
 # -----------------------------------------------------------		
-		self.currentToken = tokens[0]
-		self.lastToken = tokens[0]
+		self.token_presente = tokens[0]
+		self.tokenFF = tokens[0]
 # -----------------------------------------------------------
 # -----------------------------------------------------------		
-		self.currentTokenValue = valores[0]
-		self.lastTokenValue = valores[0]
+		self.valor_presente = valores[0]
+		self.valor_tokenF = valores[0]
 # -----------------------------------------------------------		
 		self.index = 0
-
+# -----------------------------------------------------------			
 		self.tokens.pop()
 		self.valores.pop()''')
         file.write('\n\t\tself.' + self.productions[0].id + '()')
         file.write('''
 
-	def getNext(self):
+	def mover(self):
 		self.index += 1
 		if (self.index < len(self.tokens)):
-			self.lastToken = self.currentToken
-			self.lastTokenValue = self.currentTokenValue
-			self.currentToken = self.tokens[self.index]
-			self.currentTokenValue = self.valores[self.index]
+			self.tokenFF = self.token_presente
+			self.valor_tokenF = self.valor_presente
+			self.token_presente = self.tokens[self.index]
+			self.valor_presente = self.valores[self.index]
 		else:
 			quit()
         
@@ -209,10 +209,10 @@ class Parser(object):
 
         file.write('''
 
-with open('scannedTokens.bin', 'rb') as f:
+with open('archivoConTokens.bin', 'rb') as f:
     t = pickle.load(f).split(' ')
 
-with open('scannedValues.bin', 'rb') as f:
+with open('archivoConValores.bin', 'rb') as f:
     v = pickle.load(f).split(' ')
 parser = Parser(t, v)
         
@@ -226,12 +226,14 @@ parser = Parser(t, v)
             semantic = production[semStart:semEnd + 2]
             production = production.replace(semantic, '')
             semCount -= 1
-
+            # production = production.replace('(', ' (')
+            # production = production.replace('{', ' {')
         production = production.replace('(', ' (')
         production = production.replace('{', ' {')
         production = production.replace('[', ' [')
         production = production.replace('" ', '"')
-
+        # production = production.replace('[', ' [')
+        # production = production.replace('" ', '"')
         subs = production.split(' ')
         subs = [x for x in subs if x]
         prodFirst = False
@@ -241,11 +243,16 @@ parser = Parser(t, v)
         sub = ''
         for i in subs:
             if i[0] == '(':
-                sub = self.getSubs(i, '(', ')')
+                ####production = production.replace('[', ' [')
+                # -------------- pRUEBA
+                sub = self.jalar_subgrupo(i, '(', ')')
             elif i[0] == '{':
-                sub = self.getSubs(i, '{', '}')
+                sub = self.jalar_subgrupo(i, '{', '}')
             elif i[0] == '[':
-                sub = self.getSubs(i, '[', ']')
+                ####production = production.replace('[', ' [')
+                # -------------- PRUEBA
+                #sub = self.jalar_subgrupo(i, '[', ']')
+                sub = self.jalar_subgrupo(i, '[', ']')
             else:
                 sub = i
             subProd += sub.split('|')
@@ -286,7 +293,7 @@ parser = Parser(t, v)
                     break
                 continue
 
-    def getSubs(self, exp, op, closeOp):
+    def jalar_subgrupo(self, exp, op, closeOp):
         expression = ''
         pCount = 1
         lastFound = 1

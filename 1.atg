@@ -32,6 +32,7 @@ Termino <resultado> =					        (. resultado1 = 0; resultado2 = 0 .)
 	Factor <resultado1>
 	{		"*" Factor <resultado2>			    (. resultado1 *= resultado2 .)
 		  | "/" Factor <resultado2>			    (. resultado1 /= resultado2 .)
+
 	}											(. resultado = resultado1 .)
 	.
 
@@ -43,7 +44,7 @@ Factor <resultado> =				        	(.signo = 1.)
 	)											(. resultado *= signo .)
 	.
 
-Number <resultado> = numero				        (. resultado = float(self.lastTokenValue) .)
+Number <resultado> = numero				        (. resultado = float(self.valor_tokenF) .)
 .
 
 END ArchivoPrueba1
